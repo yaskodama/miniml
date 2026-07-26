@@ -1,4 +1,15 @@
 # miniml
+
+このリポジトリには二つの版があります。
+
+* **`minicaml.sml`** — 1996 年版（原典）。以下の説明はこちらのものです。
+* **`minicaml2.sml`** — 構文を拡張し、現代の Standard ML 処理系で動くように
+  した版。使い方と変更点は **[MINICAML2.md](MINICAML2.md)** を参照してください。
+  サンプルは `demo.mml`（構文一覧）、`newton.mml`（ニュートン法）、
+  `hanoi.mml`（ハノイの塔）です。
+
+---
+
 * This program is translated from the MINICAML included in the Caml-light
    ver. 0.71 package and wrritten in Standard ML/NJ syntax.
    Originall copyright as follows:
