@@ -85,6 +85,17 @@ Basis Library に置き換えたので、Poly/ML・MLton・SML/NJ で動きま�
   しています。
 - そのほか `^` `mod` `string_of_int` `print_string` `print_int`
   `print_newline` を追加。原版の `not` `write_int` `quit` は残しています。
+- 文字列を分解する組み込みを追加しました。これが入るまでは、この言語で
+  字句解析器を書くことが原理的にできませんでした。
+
+  | 組み込み | 型 |
+  |---|---|
+  | `size` | `string -> int` |
+  | `sub` | `string -> int -> string`（0 起点、1 文字ぶん） |
+  | `ord` | `string -> int`（先頭 1 文字の文字コード） |
+  | `chr` | `int -> string` |
+  | `explode` | `string -> string list` |
+  | `implode` | `string list -> string` |
 
 ### 表示と診断
 
