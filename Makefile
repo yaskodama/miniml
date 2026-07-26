@@ -11,7 +11,13 @@ demo: minicaml2
 repl: minicaml2
 	./minicaml2
 
+samples: minicaml2
+	@for f in samples/*.mml; do \
+	  echo "========== $$f =========="; \
+	  ./minicaml2 $$f; \
+	done
+
 clean:
 	rm -f minicaml2
 
-.PHONY: all demo repl clean
+.PHONY: all demo repl samples clean
