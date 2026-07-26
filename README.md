@@ -1,12 +1,18 @@
 # miniml
 
-このリポジトリには二つの版があります。
+MINICAML には三つの版があります。
 
 * **`minicaml.sml`** — 1996 年版（原典）。以下の説明はこちらのものです。
 * **`minicaml2.sml`** — 構文を拡張し、現代の Standard ML 処理系で動くように
   した版。使い方と変更点は **[MINICAML2.md](MINICAML2.md)** を参照してください。
   サンプルは `demo.mml`（構文一覧）、`newton.mml`（ニュートン法）、
-  `hanoi.mml`（ハノイの塔）です。
+  `hanoi.mml`（ハノイの塔）、それに `samples/` の 10 本です。
+* **MINICAML3** — 文法はそのままに、字句解析器と構文解析器を **ML-Lex** と
+  **ML-Yacc** で生成し直した版。別リポジトリ
+  **[yaskodama/miniml3](https://github.com/yaskodama/miniml3)** にあります
+  （説明は [その README](https://github.com/yaskodama/miniml3/blob/master/README.md)）。
+  `samples/` の 10 本について、`minicaml2` と出力が完全に一致することを
+  確かめてあります。
 
 ---
 
