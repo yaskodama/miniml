@@ -169,8 +169,10 @@ datatype value = Val_number of int
          |  Val_string of string
          |  Val_unit
 withtype environment = (string * value) list
-and closure = { Definition: (motif*expr) list, 
-		Environment: (environment ref) };
+(* SML'97 では withtype の束縛どうしが参照し合えないので、closure の中の
+   environment は展開して書く。1996 年当時の SML/NJ は通していた。 *)
+and closure = { Definition: (motif*expr) list,
+		Environment: ((string * value) list ref) };
 datatype simple_type =
     VarType of variable_of_type
 |   Term of string * (simple_type list)
