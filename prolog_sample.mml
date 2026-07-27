@@ -1,0 +1,109 @@
+let nilsubst = [];
+
+let rec append =function
+    [],ys->ys
+  | x::xs,ys->x::(append (xs,ys));
+
+let rec lookup =function
+    v,[]->0
+  | v,(x,t)::xs->match v=x with true->t | false->lookup (v,xs);
+
+let rec walk =function
+    t,s->match t>=1000 with
+            true->
+             (let u = lookup (t,s) in
+              (match u=0 with true->t | false->walk (u,s)))
+          | false->t;
+
+let bind =function
+    v,t,s->(true,(v,t)::s);
+
+let unify =function
+    a,b,s->
+      let aa = walk (a,s) in
+      let bb = walk (b,s) in
+      match aa=bb with
+          true->(true,s)
+        | false->
+            match aa>=1000 with
+                true->bind (aa,bb,s)
+              | false->
+                  match bb>=1000 with
+                      true->bind (bb,aa,s)
+                    | false->(false,s);
+
+let unify_goal =function
+    (p,(a,b)),(q,(c,d)),s->
+      match p=q with
+          true->
+        (let r1 = unify (a,c,s) in
+         (match r1 with
+             (false,s1)->(false,s1)
+           | (true,s1)->unify (b,d,s1)))
+        | false->(false,s);
+
+let rename_term =function
+    x,k->match x>=1000 with true->x+k | false->x;
+
+let rename_goal =function
+    (p,(a,b)),k->(p,(rename_term (a,k),rename_term (b,k)));
+
+let rec rename_goals =function
+    [],k->[]
+  | g::gs,k->(rename_goal (g,k))::(rename_goals (gs,k));
+
+let rename_clause =function
+    (h,body),k->(rename_goal (h,k),rename_goals (body,k));
+
+let rec solve =function
+    [],program,s,depth->(true,s)
+  | goal::rest,program,s,depth->
+      let rec try_clauses =function
+          []->(false,s)
+        | clause::clauses->
+            let fresh = rename_clause (clause,depth*10) in
+            match fresh with
+                head,body->
+                  (let u = unify_goal (goal,head,s) in
+                   (match u with
+                       (false,s1)->try_clauses clauses
+                     | (true,s1)->
+                         (let r = solve (append (body,rest),program,s1,depth+1) in
+                          (match r with
+                              (true,s2)->(true,s2)
+                            | (false,s2)->try_clauses clauses))))
+      in
+      try_clauses program;
+
+let parent_ab = ((1,(1,2)),[]);
+let parent_bc = ((1,(2,3)),[]);
+let parent_cd = ((1,(3,4)),[]);
+
+let ancestor_base = ((2,(1001,1002)),(1,(1001,1002))::[]);
+let ancestor_step = ((2,(1001,1002)),(1,(1001,1003))::(2,(1003,1002))::[]);
+
+let program = parent_ab::parent_bc::parent_cd::ancestor_base::ancestor_step::[];
+
+let query_parent = (1,(1,9000))::[];
+let query_ancestor = (2,(1,9000))::[];
+let query_ancestor_dave = (2,(1,4))::[];
+
+let answer_var =function
+    s->walk (9000,s);
+
+let r_parent = solve (query_parent,program,nilsubst,1);
+match r_parent with
+    (false,s)->0
+  | (true,s)->answer_var s;
+
+let r_ancestor = solve (query_ancestor,program,nilsubst,1);
+match r_ancestor with
+    (false,s)->0
+  | (true,s)->answer_var s;
+
+let r_ancestor_dave = solve (query_ancestor_dave,program,nilsubst,1);
+match r_ancestor_dave with
+    (false,s)->0
+  | (true,s)->1;
+
+quit ();
