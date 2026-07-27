@@ -1,0 +1,9 @@
+let eval =function
+    0->(function n->n)
+  | 1->(function n->n+1)
+  | 2->(function n->n*n);
+eval 2 (eval 1 6);
+eval 2 (eval 1 9);
+let rec fac =function 0->1|x->((fac (x-1))*x);
+fac 6;
+quit ();
