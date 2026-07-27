@@ -53,7 +53,7 @@ Chesnay Cedex - France.
 INRIA holds all ownership rights to Caml Light version 0.7.
 
 The software has been registered at Agence pour la Protection
-des Programmes (APP).
+Dec programmes (APP).
 
 Preamble:
 
@@ -133,7 +133,7 @@ Thanks,
 yas@is.noda.sut.ac.jp *)
 
 datatype rword = TRUE | FALSE | LET | IN | FUNCTION | REC | NE | LE
-	 |	 GE | CONS | ARROW | MATCH | WITH
+	 |   GE | CONS | ARROW | MATCH | WITH
 datatype lexis = Reserved of rword
          |       Identifier of string
          |       Num of int
@@ -379,6 +379,16 @@ and motif_simple ISTREAM ahead =
     |   Num(n) => (ahead,Motif_number n)
     |   Reserved(TRUE) => (ahead,Motif_boolean true)
     |   Reserved(FALSE) => (ahead,Motif_boolean false)
+    |   One("[") =>
+	    (case token ISTREAM of
+		 One("]") => (ahead,Motif_nil)
+	       | _ => raise Syntax_error)
+    |   One("(") =>
+	    let val (a1,m1) = motif ISTREAM (token ISTREAM) in
+		case a1 of
+		    One(")") => (ahead,m1)
+		  | _ => raise Cant_close_parenthesis
+	    end
     |   _ => (ahead,Motif_arrow)
 and sequence_of_motif ISTREAM ahead l =
     let val (a1,e1) = motif_simple ISTREAM ahead in
@@ -438,6 +448,29 @@ and expr ISTREAM ahead =
 	    let val (a1,ml) = read_list_of_case ISTREAM (token ISTREAM) in
 		(a1,Function ml)
             end
+    |   Reserved(LET) =>
+	    let val r = ref false; val a5 = token ISTREAM; val a6 = ref a5;
+		val n = ref "" in
+		let val oper_str = read_operator a5 ["rec"] in
+		    if oper_str = "rec" then r:=true else r:=false;
+		    if !r then ( a6 := token ISTREAM ) else ( a6 := a5 );
+		    case (!a6) of
+			Identifier(i) => n := i
+		    |   _ => raise Syntax_error;
+		    let val a7 = token ISTREAM in
+			let val oper_str = read_operator a7 ["="] in
+			    if oper_str <> "=" then raise Syntax_error else
+				let val (a1,e1)=expr ISTREAM (token ISTREAM) in
+				    if a1 <> Reserved(IN) then raise Syntax_error
+				    else let val (a2,e2) =
+				expr ISTREAM (token ISTREAM) in
+					(a2,Let(Def(!r,!n,e1),e2))
+				    end
+		                end
+			end
+		    end
+		end
+	    end
     |   Reserved(MATCH) =>
 	    let val (a1,e1) = expr ISTREAM (token ISTREAM) in
 		let val oper_str = read_operator a1 ["with"] in
@@ -454,6 +487,10 @@ and expr_simple ISTREAM ahead =
     |   Num(n) => ((token ISTREAM),Number n)
     |   Reserved(TRUE) => ((token ISTREAM),Boolean true)
     |   Reserved(FALSE) => ((token ISTREAM),Boolean false)
+    |   One("[") =>
+	    (case token ISTREAM of
+		 One("]") => ((token ISTREAM),Nil)
+	       | _ => raise Syntax_error)
     |   One("(") =>
 	    let val (a1,e1) = expr ISTREAM (token ISTREAM) in
 		case a1 of
@@ -467,6 +504,7 @@ and check_expr_simple ahead =
     |   Num(n) => true
     |   Reserved(TRUE) => true
     |   Reserved(FALSE) => true
+    |   One("[") => true
     |   One("(") => true
     |   _ => false
 and definition ISTREAM ahead =
@@ -488,10 +526,7 @@ and definition ISTREAM ahead =
 						(a1,Def(!r, !n, e1))
 					else let val (a2,e2) =
 						expr ISTREAM (token ISTREAM) in
-					    if a2 <> One(";") then
-						raise Syntax_error
-					    else
-					       (a2,Expr(Let(Def(!r,!n,e1),e2)))
+					    (a2,Expr(Let(Def(!r,!n,e1),e2)))
 					    end
 		                end
 			end
@@ -802,7 +837,7 @@ fun type_motif env x =
     |   Motif_number n => (type_int, env)
     |   Motif_pair (m1,m2) =>
 	let val (ty1, env1) = type_motif env m1;
-	    val (ty2, env2) = type_motif env m2 in
+	    val (ty2, env2) = type_motif env1 m2 in
 		(type_product ty1 ty2, env2)
 	end
     |   Motif_nil => (type_list (new_unknown()), env)
@@ -899,7 +934,7 @@ fun run () =
 				print str; print "\n" )
 	    |   Eval_Error str => ( print "Eval error: ";
 				print str; print "\n" )
-	    |	Conflict (sty1,sty2) => ( print "Type check error: ";
+	    |   Conflict (sty1,sty2) => ( print "Type check error: ";
 				print "Incompatible in types entry ";
 				display_type sty1; print " with ";
 				display_type sty2; print "\n" )
